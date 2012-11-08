@@ -6,7 +6,7 @@ import time
 
 def doLogin(username,password,securityHash, authData):
     '''
-    securityHash is the Respone data sent entering your security question at this adress:
+    securityHash is the POST data sent entering your security question at this adress:
      http://www.ea.com/p/fut/a/card-360/l/en/s/p/ut/game/fifa13/phishing/validate
    
     authdata is the POST data from:
@@ -128,6 +128,7 @@ def buyItem(trade, value):
         return True
     
 def moveCard(itemID, pile):
+    #pile is either trade or club
     searchURL = "https://utas.fut.ea.com/ut/game/fifa13/item"
     req = urllib2.Request(searchURL)
     req.add_header('Cookie', EASW_KEY + "; " + EASF_SESS + "; " + FUTPHISHING + "; "  )

@@ -49,6 +49,9 @@ class FifaClient(object):
 
 		authdata is the POST data from:
 		http://www.ea.com/p/fut/a/card-360/l/en/s/p/ut/auth
+		it looks something like this
+		{ "isReadOnly": false, "sku": "###, "clientVersion": 3, "nuc": ###, "nucleusPersonaId": ###, "nucleusPersonaDisplayName": "GT", "nucleusPersonaPlatform": "360", "locale": "en-GB", "method": "idm", "priorityLevel":4, "identification": { "EASW-Token": "" } }
+		Yes you take the whole thing
 
 		'''
 		
@@ -262,7 +265,6 @@ def doMain():
 				client = FifaClient(EMAIL,PASSWORD,HASH,AUTHDATA)
 				print('Total Coins = ' + str(client.getCoins()))
 				print('Total Items In TradePile = ' + str(client.getTradePileLegnth()))
-		
 				
 				autobuyContracts()
 				time.sleep(60)

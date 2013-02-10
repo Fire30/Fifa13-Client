@@ -19,7 +19,6 @@ class UrlRequestor(object):
                 if self.data:
                         self.request.add_data(self.data)
                 for headerName, headerContent in self.headers.iteritems():
-                        
                         self.request.add_header(headerName, headerContent)
         def open(self):
                 self.content = urllib2.urlopen(self.request)
@@ -133,14 +132,17 @@ class FifaClient(object):
                 cardIDList = list()
                 previousBuyNowPrice = list()
                 previousStartingBid = list()
+                timeLeft = list()
                 requestor = UrlRequestor("https://utas.fut.ea.com/ut/game/fifa13/tradepile", {'Content-Type': 'application/json', 'Cookie' : self.EASW_KEY + "; " + self.EASF_SESS + "; " + self.FUTPHISHING + "; ", 'X-UT-SID' :self.XUT_SID, 'x-http-method-override':'GET'}, '')
                 requestor.open()
                 
                 for card in requestor.getReturnData().get('auctionInfo'):
+                        timeLeft.append(card.get('expires'))
                         cardIDList.append(card.get('itemData').get('id'))
                         previousBuyNowPrice.append(card.get('buyNowPrice'))
-                        previousStartingBid.append(card.get('startingBid'))     
-                return (cardIDList, previousBuyNowPrice, previousStartingBid)
+                        previousStartingBid.append(card.get('startingBid'))
+                timeLeft = abs(min(timeLeft))
+                return (cardIDList, previousBuyNowPrice, previousStartingBid,timeLeft)
         
         def getTradePileLegnth(self):
                 return len(self.getTradePileId()[0])
@@ -164,6 +166,9 @@ class FifaClient(object):
         
         def playerSearch(self, start, count , level, formation, position, nationality, league, team, minBid, maxBid, minBIN, maxBIN):
                 '''
+                start - How many players in you want the search to start.
+                        ex. 200 means it will start at the 200th card in that search.
+                count - The amount of cards to return, max is 250.
                 level - gold,silver,bronze
                 formation- f then formation. Ex. f433, f3412
                 position-Can be the zone, ex defense, midfield, or attacker, or the actual position, ex RB or ST
@@ -228,47 +233,6 @@ class FifaClient(object):
                 requestor = UrlRequestor("https://utas.fut.ea.com/ut/game/fifa13/user/credits", {'Content-Type': 'application/json', 'Cookie' : self.EASW_KEY + "; " + self.EASF_SESS + "; " + self.FUTPHISHING + "; ", 'X-UT-SID' :self.XUT_SID, 'x-http-method-override':'GET'}, "")
                 requestor.open()        
                 return  requestor.getReturnData().get('credits')
+        def refresh(self):
+                self = FifaClient(self.username,self.password,self.securityHash,self.authData)
         
-
-def autobuyContracts():
-
-        client = FifaClient(EMAIL, PASSWORD, HASH, AUTHDATA)
-        while client.getCoins() > 500 and len(client.getTradePileId()[0]) < 30:
-                searchURL = "https://utas.fut.ea.com/ut/game/fifa13/auctionhouse?type=development&num=16&start=0&maxb=200&blank=10&cat=contract&lev=gold"
-                req = urllib2.Request(searchURL)
-                req.add_header('Cookie', client.EASW_KEY + "; " + client.EASF_SESS + "; " + client.FUTPHISHING + "; ")
-                req.add_header('Content-Type', 'application/json')
-                req.add_header('x-http-method-override', 'GET')
-                req.add_header('X-UT-SID', client.XUT_SID)
-                d = urllib2.urlopen(req)
-                                
-                searchXML = dict(json.loads(d.read()))
-                auctionInfo = searchXML.get('auctionInfo')
-        
-                for contract in auctionInfo:
-                        tradeID = contract.get('tradeId')
-                        itemID = contract.get('itemData').get('id')
-                        if client.buyItem(tradeID, 200):
-                                print 'Bought Contract for 200 coins'
-                                if client.moveCard(str(itemID), 'trade'):
-                                        client.postTrade(str(itemID), str(250), str(0), str(3600))
-                                        print 'Contract posted For 250 Coins'
-        tradePileCards = client.getTradePileId()
-        for x in range(0, client.getTradePileLegnth()):
-                client.postTrade(str((tradePileCards[0])[x]), str((tradePileCards[2])[x]), str(0), str(3600))
-                
-def doMain():
-        config = ConfigParser.ConfigParser()
-        config.read("accounts.ini")
-        for section in config.sections():
-                email = config.get(section,'email')
-                password = config.get(section,'password')
-                the_hash = config.get(section,'hash')
-                authdata = config.get(section,'authdata')
-                authdata = eval(authdata)
-                client = FifaClient(email,password,the_hash,authdata)
-                print('Total Coins = ' + str(client.getCoins()))
-                print('Total Items In TradePile = ' + str(client.getTradePileLegnth()))
-
-if __name__ == "__main__":
-        doMain()

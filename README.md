@@ -8,3 +8,7 @@ Currently can auto-buy contracts for 200 and resell them for 250.
 Usage
 ==============
 You must put your account info in the accounts.ini. In the future I will try to allow for the autobuyer to use multiple accounts.
+
+LICENSE
+==============
+I am using the mit license, so you can do whatever you want with the code.
